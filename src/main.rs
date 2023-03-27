@@ -22,15 +22,45 @@ fn main() {
     let mut game = Game::new();
     let player = game.add_sprite("player", SpritePreset::RacingCarBlue);
 
-    player.translation = Vec2::new(200.0, 100.0);
-    player.rotation = std::f32::consts::FRAC_PI_2;
+    player.translation = Vec2::new(-400.0, 0.0);
+    //player.rotation = std::f32::consts::FRAC_PI_2;
     player.scale = 0.5;
+    player.collision = true;
+
+    let car1 = game.add_sprite("car1", SpritePreset::RacingCarYellow);
+    car1.translation = Vec2::new(300.0, 0.0);
+    car1.scale = 0.5;
+    car1.collision = true;
 
     game.add_logic(game_logic);
     game.run(GameState::default());
 }
 
 fn game_logic(engine: &mut Engine, game_state: &mut GameState) {
-    game_state.current_score += 1;
-    println!("Current score: {}", game_state.current_score);
+
+    // An event looks like that:
+    //     CollisionEvent {
+    //         state: Begin,
+    //         pair: CollisionPair(
+    //             "car1",
+    //             "player",
+    //             ),
+    //     }
+
+    for event in engine.collision_events.drain(..) {
+        println!("{:#?}", event);
+        if event.state == CollisionState::Begin &&
+            event.pair.one_starts_with("player") {
+                // Check with whom we collision
+                for label in [event.pair.0, event.pair.1] {
+                    if label != "player" {
+                        engine.sprites.remove(&label);
+                    }
+                }
+
+            }
+    }
+
+    let player = engine.sprites.get_mut("player").unwrap();
+    player.translation.x += 100.0 * engine.delta_f32;
 }
