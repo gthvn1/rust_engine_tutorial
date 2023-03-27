@@ -20,8 +20,12 @@ impl Default for GameState {
 
 fn main() {
     let mut game = Game::new();
+    let player = game.add_sprite("player", SpritePreset::RacingCarBlue);
 
-    // Setup game here
+    player.translation = Vec2::new(200.0, 100.0);
+    player.rotation = std::f32::consts::FRAC_PI_2;
+    player.scale = 0.5;
+
     game.add_logic(game_logic);
     game.run(GameState::default());
 }
