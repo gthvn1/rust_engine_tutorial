@@ -1,8 +1,8 @@
 use rusty_engine::prelude::*;
 
 struct GameState {
-    //high_score: u32,
-    current_score: u32,
+    high_score: u32,
+    score: u32,
     car_index: u32,
     //enemy_labels: Vec<String>,
     //spawn_timer: Timer,
@@ -11,8 +11,8 @@ struct GameState {
 impl Default for GameState {
     fn default() -> Self {
         Self {
-            //high_score: 0,
-            current_score: 0,
+            high_score: 2,
+            score: 0,
             car_index: 0,
             //enemy_labels: Vec::new(),
             //spawn_timer: Timer::from_seconds(1.0, false),
@@ -34,12 +34,18 @@ fn main() {
     car1.scale = 0.5;
     car1.collision = true;
 
+    // Add score
+    let score = game.add_text("score", "Score: 0");
+    score.translation = Vec2::new(400.0, 320.0);
+
+    let high_score = game.add_text("high_score", "High score: 2");
+    high_score.translation = Vec2::new(-400.0, 320.0);
+
     game.add_logic(game_logic);
     game.run(GameState::default());
 }
 
 fn game_logic(engine: &mut Engine, game_state: &mut GameState) {
-
     // Handle collision
     //
     // An event looks like that:
@@ -52,18 +58,26 @@ fn game_logic(engine: &mut Engine, game_state: &mut GameState) {
     //     }
     for event in engine.collision_events.drain(..) {
         println!("{:#?}", event);
-        if event.state == CollisionState::Begin &&
-            event.pair.one_starts_with("player") {
-                // Check with whom we collision
-                for label in [event.pair.0, event.pair.1] {
-                    if label != "player" {
-                        engine.sprites.remove(&label);
-                    }
+        if event.state == CollisionState::Begin && event.pair.one_starts_with("player") {
+            // Check with whom we collision
+            for label in [event.pair.0, event.pair.1] {
+                if label != "player" {
+                    engine.sprites.remove(&label);
                 }
-
-                game_state.current_score += 1;
-                println!("Current score: {}", game_state.current_score);
             }
+
+            // update the game score
+            game_state.score += 1;
+            let score = engine.texts.get_mut("score").unwrap();
+            score.value = format!("Score: {}", game_state.score);
+
+            // update the high score of the game
+            if game_state.score > game_state.high_score {
+                game_state.high_score = game_state.score;
+                let high_score = engine.texts.get_mut("high_score").unwrap();
+                high_score.value = format!("High score: {}", game_state.high_score);
+            }
+        }
     }
 
     // Handle movement
@@ -84,6 +98,13 @@ fn game_logic(engine: &mut Engine, game_state: &mut GameState) {
 
     if engine.keyboard_state.pressed(KeyCode::Right) {
         player.translation.x += MOVEMENT_SPEED * engine.delta_f32;
+    }
+
+    // Handle the reset of the score
+    if engine.keyboard_state.pressed(KeyCode::R) {
+        game_state.score = 0;
+        let score = engine.texts.get_mut("score").unwrap();
+        score.value = "Score: 0".to_string();
     }
 
     // Handle mouse event
