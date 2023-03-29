@@ -1,19 +1,19 @@
 use rusty_engine::prelude::*;
 
 struct GameState {
-    high_score: u32,
+    //high_score: u32,
     current_score: u32,
-    enemy_labels: Vec<String>,
-    spawn_timer: Timer,
+    //enemy_labels: Vec<String>,
+    //spawn_timer: Timer,
 }
 
 impl Default for GameState {
     fn default() -> Self {
         Self {
-            high_score: 0,
+            //high_score: 0,
             current_score: 0,
-            enemy_labels: Vec::new(),
-            spawn_timer: Timer::from_seconds(1.0, false),
+            //enemy_labels: Vec::new(),
+            //spawn_timer: Timer::from_seconds(1.0, false),
         }
     }
 }
@@ -38,6 +38,8 @@ fn main() {
 
 fn game_logic(engine: &mut Engine, game_state: &mut GameState) {
 
+    // Handle collision
+    //
     // An event looks like that:
     //     CollisionEvent {
     //         state: Begin,
@@ -46,7 +48,6 @@ fn game_logic(engine: &mut Engine, game_state: &mut GameState) {
     //             "player",
     //             ),
     //     }
-
     for event in engine.collision_events.drain(..) {
         println!("{:#?}", event);
         if event.state == CollisionState::Begin &&
@@ -58,9 +59,28 @@ fn game_logic(engine: &mut Engine, game_state: &mut GameState) {
                     }
                 }
 
+                game_state.current_score += 1;
+                println!("Current score: {}", game_state.current_score);
             }
     }
 
+    // Handle movement
     let player = engine.sprites.get_mut("player").unwrap();
-    player.translation.x += 100.0 * engine.delta_f32;
+    //player.translation.x += 100.0 * engine.delta_f32;
+    const MOVEMENT_SPEED: f32 = 100.0;
+    if engine.keyboard_state.pressed(KeyCode::Up) {
+        player.translation.y += MOVEMENT_SPEED * engine.delta_f32;
+    }
+
+    if engine.keyboard_state.pressed(KeyCode::Down) {
+        player.translation.y -= MOVEMENT_SPEED * engine.delta_f32;
+    }
+
+    if engine.keyboard_state.pressed(KeyCode::Left) {
+        player.translation.x -= MOVEMENT_SPEED * engine.delta_f32;
+    }
+
+    if engine.keyboard_state.pressed(KeyCode::Right) {
+        player.translation.x += MOVEMENT_SPEED * engine.delta_f32;
+    }
 }
