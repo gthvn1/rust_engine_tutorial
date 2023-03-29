@@ -3,6 +3,7 @@ use rusty_engine::prelude::*;
 struct GameState {
     //high_score: u32,
     current_score: u32,
+    car_index: u32,
     //enemy_labels: Vec<String>,
     //spawn_timer: Timer,
 }
@@ -12,6 +13,7 @@ impl Default for GameState {
         Self {
             //high_score: 0,
             current_score: 0,
+            car_index: 0,
             //enemy_labels: Vec::new(),
             //spawn_timer: Timer::from_seconds(1.0, false),
         }
@@ -27,7 +29,7 @@ fn main() {
     player.scale = 0.5;
     player.collision = true;
 
-    let car1 = game.add_sprite("car1", SpritePreset::RacingCarYellow);
+    let car1 = game.add_sprite("uniqueCar", SpritePreset::RacingCarYellow);
     car1.translation = Vec2::new(300.0, 0.0);
     car1.scale = 0.5;
     car1.collision = true;
@@ -82,5 +84,20 @@ fn game_logic(engine: &mut Engine, game_state: &mut GameState) {
 
     if engine.keyboard_state.pressed(KeyCode::Right) {
         player.translation.x += MOVEMENT_SPEED * engine.delta_f32;
+    }
+
+    // Handle mouse event
+    if engine.mouse_state.just_pressed(MouseButton::Left) {
+        if let Some(mouse_location) = engine.mouse_state.location() {
+            let label = format!("car{}", game_state.car_index);
+            // if the label already exists then this will move the sprite
+            // to the mouse location. We want a new sprite so label must be
+            // unique.
+            game_state.car_index += 1;
+            let car = engine.add_sprite(label, SpritePreset::RacingCarYellow);
+            car.translation = mouse_location;
+            car.scale = 0.5;
+            car.collision = true;
+        }
     }
 }
