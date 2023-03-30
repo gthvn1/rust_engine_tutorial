@@ -22,8 +22,10 @@ impl Default for GameState {
 
 fn main() {
     let mut game = Game::new();
-    let player = game.add_sprite("player", SpritePreset::RacingCarBlue);
 
+    game.audio_manager.play_music(MusicPreset::Classy8Bit, 0.1);
+
+    let player = game.add_sprite("player", SpritePreset::RacingCarBlue);
     player.translation = Vec2::new(-400.0, 0.0);
     //player.rotation = std::f32::consts::FRAC_PI_2;
     player.scale = 0.5;
@@ -59,6 +61,9 @@ fn game_logic(engine: &mut Engine, game_state: &mut GameState) {
     for event in engine.collision_events.drain(..) {
         println!("{:#?}", event);
         if event.state == CollisionState::Begin && event.pair.one_starts_with("player") {
+            // Play a sound
+            engine.audio_manager.play_sfx(SfxPreset::Impact1, 1.0);
+
             // Check with whom we collision
             for label in [event.pair.0, event.pair.1] {
                 if label != "player" {
@@ -77,6 +82,7 @@ fn game_logic(engine: &mut Engine, game_state: &mut GameState) {
                 let high_score = engine.texts.get_mut("high_score").unwrap();
                 high_score.value = format!("High score: {}", game_state.high_score);
             }
+
         }
     }
 
